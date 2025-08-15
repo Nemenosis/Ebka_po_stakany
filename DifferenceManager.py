@@ -1,3 +1,6 @@
+from decimal import Decimal, getcontext
+getcontext().prec = 28
+
 class DifferenceManager:
     def __init__(self, lists):
         self.lists = lists
@@ -20,9 +23,12 @@ class DifferenceManager:
             for i in range(len(keys)):
                 for j in range(i + 1, len(keys)):
                     k1, k2 = keys[i], keys[j]
-                    percent_diff = abs(markets[k1] - markets[k2]) / markets[k1] * 100
-                    diff[f"{k1}{k2}"] = percent_diff
-            self.tokenDict[token]['difference'] = diff
+                    price1 = Decimal(str(markets[k1]))
+                    price2 = Decimal(str(markets[k2]))
+                    percent_diff = abs(price1 - price2) / ((price1 + price2) / 2) * Decimal('100')
+                    diff[f"{k1}{k2}"] = float(percent_diff)
+            if diff:
+                self.tokenDict[token]['difference'] = diff
 
         tokens_to_remove = [token for token, data in self.tokenDict.items() if not data.get('difference')]
         for token in tokens_to_remove:
