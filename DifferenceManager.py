@@ -38,7 +38,7 @@ class DifferenceManager:
 
             filtered_diff = {pair: diff for pair, diff in sorted(
                 data['difference'].items(), key=lambda x: abs(x[1]), reverse=True
-            ) if abs(diff) > 1.0}
+            ) if abs(diff) > 3.0}
 
             if filtered_diff:
                 results[token] = {
