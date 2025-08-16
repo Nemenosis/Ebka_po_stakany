@@ -4,8 +4,10 @@ from loguru import logger
 from DifferenceManager import DifferenceManager
 from TelegramBot import TelegramBot
 from controllers.controllers import GateAPIController, MexcAPIController, OurbitAPIController
+from collections import deque
 
 TELEGRAM_BOT_TOKEN = "8421137605:AAECvTERMBzB_TOJb8vDoqU0YL0AcTqGMB8"
+
 
 async def main():
     bot = TelegramBot(TELEGRAM_BOT_TOKEN)
@@ -37,4 +39,6 @@ async def main():
         logger.info(results)
         end = time.perf_counter()
         logger.info(f"Час виконання: {end - start:.6f} секунд")
+
+
 asyncio.run(main())

@@ -26,4 +26,3 @@ class OurbitAPIController(BrokerAPIController):
     async def prepare_list(self) -> list:
         self.list = self.list['data']
         return [self.broker] + self.get_final_list("symbol", "lastPrice")
-
