@@ -6,7 +6,8 @@ getcontext().prec = 28
 class DifferenceManager:
     def __init__(self, lists):
         self.lists = lists
-        self.tokenDict = {}
+        if not hasattr(self, 'tokenDict'):
+            self.tokenDict = {}
 
     def sort_pairs(self):
         for sublist in self.lists:
@@ -15,43 +16,59 @@ class DifferenceManager:
                 token = item['token']
                 price = float(item['price'])
                 if token not in self.tokenDict:
-                    self.tokenDict[token] = {}
+                    self.tokenDict[token] = {'notification': False}
                 self.tokenDict[token][exchange] = price
 
     def calculate_difference(self):
         for token, markets in self.tokenDict.items():
+            exchanges = {k: v for k, v in markets.items() if k not in ['difference', 'notification']}
+            if len(exchanges) < 2:
+                continue
+
             diff = {}
-            keys = list(markets.keys())
+            keys = list(exchanges.keys())
             for i in range(len(keys)):
                 for j in range(i + 1, len(keys)):
                     k1, k2 = keys[i], keys[j]
-                    price1 = Decimal(str(markets[k1]))
-                    price2 = Decimal(str(markets[k2]))
+                    price1 = Decimal(str(exchanges[k1]))
+                    price2 = Decimal(str(exchanges[k2]))
+
+                    if price1 == 0 or price2 == 0:
+                        continue
+
                     percent_diff = abs(price1 - price2) / ((price1 + price2) / 2) * Decimal('100')
                     diff[f"{k1}{k2}"] = float(percent_diff)
+
             if diff:
                 self.tokenDict[token]['difference'] = diff
 
-        tokens_to_remove = [token for token, data in self.tokenDict.items() if not data.get('difference')]
-        for token in tokens_to_remove:
-            del self.tokenDict[token]
-
     def get_results(self):
         results = {}
+        notifications_to_send = []
 
         for token, data in self.tokenDict.items():
+            if 'difference' in data and data['difference']:
 
-            if 'difference' not in data or not data['difference']:
-                continue
+                sorted_diffs = sorted(data['difference'].items(), key=lambda x: abs(x[1]), reverse=True)
 
-            filtered_diff = {pair: diff for pair, diff in sorted(
-                data['difference'].items(), key=lambda x: abs(x[1]), reverse=True
-            ) if abs(diff) > 1.5}
+                if sorted_diffs:
+                    top_diff_pair, top_diff_value = sorted_diffs[0]
+                    current_notification_status = self.tokenDict[token]['notification']
 
-            if filtered_diff:
-                results[token] = {
-                    **data,
-                    'difference': filtered_diff
-                }
+                    if top_diff_value > 6.8 and not current_notification_status:
+                        self.tokenDict[token]['notification'] = True
+                        notifications_to_send.append(
+                            f"Сповіщення: пара {token} - {top_diff_pair} тепер актуальна! Різниця > 7.0% ({top_diff_value:.2f}%)")
 
-        return results
+                    elif top_diff_value < 3.0 and current_notification_status:
+                        self.tokenDict[token]['notification'] = False
+                        notifications_to_send.append(
+                            f"Сповіщення: пара {token} - {top_diff_pair} більше не актуальна. Різниця < 3.0% ({top_diff_value:.2f}%)")
+
+                    if top_diff_value > 6.8:
+                        results[token] = {
+                            'notification': self.tokenDict[token]['notification'],
+                            'difference': {pair: diff for pair, diff in sorted_diffs if diff > 6.8}
+                        }
+
+        return results, notifications_to_send
