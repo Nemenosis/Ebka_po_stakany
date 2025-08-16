@@ -58,17 +58,17 @@ class DifferenceManager:
                     if top_diff_value > 6.8 and not current_notification_status:
                         self.tokenDict[token]['notification'] = True
                         notifications_to_send.append(
-                            f"Сповіщення: пара {token} - {top_diff_pair} тепер актуальна! Різниця > 3.0% ({top_diff_value:.2f}%)")
+                            f"Сповіщення: пара {token} - {top_diff_pair} тепер актуальна! Різниця > 7.0% ({top_diff_value:.2f}%)")
 
                     elif top_diff_value < 3.0 and current_notification_status:
                         self.tokenDict[token]['notification'] = False
                         notifications_to_send.append(
-                            f"Сповіщення: пара {token} - {top_diff_pair} більше не актуальна. Різниця < 2.0% ({top_diff_value:.2f}%)")
+                            f"Сповіщення: пара {token} - {top_diff_pair} більше не актуальна. Різниця < 3.0% ({top_diff_value:.2f}%)")
 
                     if top_diff_value > 6.8:
                         results[token] = {
                             'notification': self.tokenDict[token]['notification'],
-                            'difference': {pair: diff for pair, diff in sorted_diffs if diff > 3.0}
+                            'difference': {pair: diff for pair, diff in sorted_diffs if diff > 6.8}
                         }
 
         return results, notifications_to_send
