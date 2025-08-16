@@ -1,5 +1,7 @@
 from decimal import Decimal, getcontext
+
 getcontext().prec = 28
+
 
 class DifferenceManager:
     def __init__(self, lists):
@@ -44,7 +46,7 @@ class DifferenceManager:
 
             filtered_diff = {pair: diff for pair, diff in sorted(
                 data['difference'].items(), key=lambda x: abs(x[1]), reverse=True
-            ) if abs(diff) > 3.0}
+            ) if abs(diff) > 1.5}
 
             if filtered_diff:
                 results[token] = {
